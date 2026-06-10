@@ -178,6 +178,7 @@ const LESSONS = [
   id: 1,
   title: "New Friends",
   jpTitle: "あたらしいともだち",
+  jpTitleRomaji: "atarashii tomodachi",
   genkiRef: "Pairs with Genki I, Lesson 1",
   summary: "Introduce yourself, greet people, exchange majors and phone numbers, and tell time. Core grammar: X は Y です.",
   objectives: [
@@ -314,6 +315,7 @@ const LESSONS = [
   id: 2,
   title: "Shopping",
   jpTitle: "かいもの",
+  jpTitleRomaji: "kaimono",
   genkiRef: "Pairs with Genki I, Lesson 2",
   summary: "Point things out, ask what things are and how much they cost. Core grammar: これ/それ/あれ, この/その/あの, ここ/そこ/あそこ, だれの, も, じゃないです.",
   objectives: [
@@ -478,6 +480,7 @@ const LESSONS = [
   id: 3,
   title: "Making a Date",
   jpTitle: "デートのやくそく",
+  jpTitleRomaji: "dēto no yakusoku",
   genkiRef: "Pairs with Genki I, Lesson 3",
   summary: "Talk about daily activities with your first verbs. Core grammar: ます/ません, particles を・で・に・へ, time expressions, invitations with ませんか, frequency adverbs.",
   objectives: [
@@ -639,6 +642,7 @@ const LESSONS = [
   id: 4,
   title: "The First Date",
   jpTitle: "はじめてのデート",
+  jpTitleRomaji: "hajimete no dēto",
   genkiRef: "Pairs with Genki I, Lesson 4",
   summary: "Say what exists where, describe locations, and talk about the past. Core grammar: あります/います, location words, past tense of です and verbs, 〜じかん, と.",
   objectives: [
@@ -787,6 +791,7 @@ const LESSONS = [
   id: 5,
   title: "A Trip to the Coast",
   jpTitle: "うみへのりょこう",
+  jpTitleRomaji: "umi e no ryokō",
   genkiRef: "Pairs with Genki I, Lesson 5",
   summary: "Describe people, places, and experiences with adjectives. Core grammar: い/な adjectives (present & past), すき/きらい, 〜ましょう/ましょうか.",
   objectives: [
@@ -933,6 +938,7 @@ const LESSONS = [
   id: 6,
   title: "A Day in the Life",
   jpTitle: "ロバートさんのいちにち",
+  jpTitleRomaji: "Robāto-san no ichinichi",
   genkiRef: "Pairs with Genki I, Lesson 6",
   summary: "The te-form unlocks requests, permission, prohibition, and chaining actions. Core grammar: て-form, 〜てください, 〜てもいいです, 〜てはいけません, から.",
   objectives: [

@@ -88,6 +88,141 @@ function speakBtn(text, rate) {
 }
 const app = () => document.getElementById("app");
 
+/* ---------------- kana → romaji (English phonetics) ---------------- */
+const ROMA_DI = {"きゃ":"kya","きゅ":"kyu","きょ":"kyo","しゃ":"sha","しゅ":"shu","しょ":"sho","ちゃ":"cha","ちゅ":"chu","ちょ":"cho","にゃ":"nya","にゅ":"nyu","にょ":"nyo","ひゃ":"hya","ひゅ":"hyu","ひょ":"hyo","みゃ":"mya","みゅ":"myu","みょ":"myo","りゃ":"rya","りゅ":"ryu","りょ":"ryo","ぎゃ":"gya","ぎゅ":"gyu","ぎょ":"gyo","じゃ":"ja","じゅ":"ju","じょ":"jo","ぢゃ":"ja","ぢゅ":"ju","ぢょ":"jo","びゃ":"bya","びゅ":"byu","びょ":"byo","ぴゃ":"pya","ぴゅ":"pyu","ぴょ":"pyo","ふぁ":"fa","ふぃ":"fi","ふぇ":"fe","ふぉ":"fo","てぃ":"ti","でぃ":"di","うぃ":"wi","うぇ":"we","ゔぁ":"va","ゔぉ":"vo"};
+const ROMA_S = {"あ":"a","い":"i","う":"u","え":"e","お":"o","か":"ka","き":"ki","く":"ku","け":"ke","こ":"ko","さ":"sa","し":"shi","す":"su","せ":"se","そ":"so","た":"ta","ち":"chi","つ":"tsu","て":"te","と":"to","な":"na","に":"ni","ぬ":"nu","ね":"ne","の":"no","は":"ha","ひ":"hi","ふ":"fu","へ":"he","ほ":"ho","ま":"ma","み":"mi","む":"mu","め":"me","も":"mo","や":"ya","ゆ":"yu","よ":"yo","ら":"ra","り":"ri","る":"ru","れ":"re","ろ":"ro","わ":"wa","ゐ":"wi","ゑ":"we","を":"o","ん":"n","が":"ga","ぎ":"gi","ぐ":"gu","げ":"ge","ご":"go","ざ":"za","じ":"ji","ず":"zu","ぜ":"ze","ぞ":"zo","だ":"da","ぢ":"ji","づ":"zu","で":"de","ど":"do","ば":"ba","び":"bi","ぶ":"bu","べ":"be","ぼ":"bo","ぱ":"pa","ぴ":"pi","ぷ":"pu","ぺ":"pe","ぽ":"po","ぁ":"a","ぃ":"i","ぅ":"u","ぇ":"e","ぉ":"o","ゃ":"ya","ゅ":"yu","ょ":"yo","ゔ":"vu","〜":"~"};
+
+function kataToHira(s) {
+  return s.replace(/[ァ-ヶ]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0x60));
+}
+
+function romajiChunk(chunk) {
+  chunk = kataToHira(chunk);
+  let out = "", dbl = false;
+  for (let i = 0; i < chunk.length; i++) {
+    const ch = chunk[i];
+    let syl = null;
+    const two = ROMA_DI[chunk.slice(i, i + 2)];
+    if (two) { syl = two; i++; }
+    else if (ch === "っ") { dbl = true; continue; }
+    else if (ch === "ー") { const m = out.match(/([aeiou])[^aeiou]*$/); if (m) out += m[1]; continue; }
+    else if (ch === "は" && i === chunk.length - 1 && i > 0) { out += " wa"; continue; } // topic particle
+    else if (ch === "へ" && i === chunk.length - 1 && i > 0) { out += " e"; continue; }  // direction particle
+    else syl = ROMA_S[ch] !== undefined ? ROMA_S[ch] : ch;
+    if (dbl && /^[a-z]/.test(syl) && !/^[aeioun]/.test(syl)) out += (syl[0] === "c" ? "t" : syl[0]);
+    dbl = false;
+    out += syl;
+  }
+  return out;
+}
+
+function hasKana(s) { return /[ぁ-ゖァ-ヺ]/.test(s); }
+
+function romajiFor(text) {
+  return text
+    .replace(/[、。，．・！？!?「」『』()（）｛｝＿]/g, " ")
+    .split(/[\s　]+/)
+    .filter(c => c.length)
+    .map(romajiChunk)
+    .join(" ")
+    .trim();
+}
+
+/* Append "(romaji)" after each run of kana inside already-escaped text. */
+function annotateKana(s) {
+  return s.replace(/[ぁ-ゖァ-ヺー〜。、！？＿　 ]+/g, run => {
+    if (!hasKana(run)) return run;
+    const tail = (run.match(/[\s　]+$/) || [""])[0];
+    const core = run.slice(0, run.length - tail.length);
+    return core + ' <span class="phonetic">(' + esc(romajiFor(core)) + ')</span>' + tail;
+  });
+}
+
+/* ---------------- flashcards ---------------- */
+let fcState = null;
+
+function fcShuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+/* key=null means an ungraded review round (e.g., missed cards) */
+function startFC(deck, key, label) {
+  fcState = { orig: deck, deck: fcShuffle(deck), idx: 0, got: 0, missed: [], key, label };
+  renderFCCard();
+}
+
+function renderFCCard() {
+  const area = document.getElementById("fc-area");
+  if (!area || !fcState) return;
+  const s = fcState;
+  if (s.idx >= s.deck.length) {
+    if (s.key) recordScore(s.key, s.got, s.deck.length);
+    const pct = Math.round(s.got / s.deck.length * 100);
+    area.innerHTML = `
+      <div class="score-banner ${pct >= 80 ? "good" : "bad"}">Deck finished: ${s.got}/${s.deck.length} (${pct}%)
+        ${pct >= 80 ? "— よくできました <span class='phonetic'>(yoku dekimashita — well done!)</span>" : "— drill the missed cards, then run the deck again."}</div>
+      <div class="fc-controls">
+        ${s.missed.length ? `<button class="primary" onclick="window._fcReviewMissed()">Review ${s.missed.length} missed card${s.missed.length > 1 ? "s" : ""}</button>` : ""}
+        <button class="ghost" onclick="window._fcRestart()">Restart deck</button>
+      </div>`;
+    return;
+  }
+  const c = s.deck[s.idx];
+  area.innerHTML = `
+    <div class="fc-meta">${esc(s.label)} — card ${s.idx + 1} of ${s.deck.length} · ✓ ${s.got}</div>
+    <div class="fc-stage">
+      <div class="flashcard" id="fc-card" onclick="this.classList.toggle('flipped')">
+        <div class="fc-face fc-front">
+          <span class="big jp">${c.front}</span>
+          ${c.frontSub ? `<span class="phonetic">${esc(c.frontSub)}</span>` : ""}
+          ${c.audio ? `<button class="speak-btn" onclick="event.stopPropagation();_speak('${esc(c.audio).replace(/'/g, "\\'")}')">🔊</button>` : ""}
+          <span class="hint">click card to flip</span>
+        </div>
+        <div class="fc-face fc-back">
+          <span class="big jp">${c.back}</span>
+          ${c.backSub ? `<span class="phonetic">${esc(c.backSub)}</span>` : ""}
+          ${c.backAudio ? `<button class="speak-btn" onclick="event.stopPropagation();_speak('${esc(c.backAudio).replace(/'/g, "\\'")}')">🔊</button>` : ""}
+        </div>
+      </div>
+    </div>
+    <div class="fc-controls">
+      <button class="ghost" onclick="document.getElementById('fc-card').classList.toggle('flipped')">↻ Flip</button>
+      <button class="primary" onclick="window._fcMark(true)">✓ Got it</button>
+      <button class="ghost" onclick="window._fcMark(false)">✗ Missed it</button>
+    </div>`;
+}
+
+window._fcMark = function (got) {
+  if (!fcState) return;
+  if (got) fcState.got++; else fcState.missed.push(fcState.deck[fcState.idx]);
+  fcState.idx++;
+  renderFCCard();
+};
+window._fcRestart = function () { if (fcState) startFC(fcState.orig, fcState.key, fcState.label); };
+window._fcReviewMissed = function () {
+  if (fcState && fcState.missed.length) startFC(fcState.missed, null, fcState.label + " — missed cards (ungraded)");
+};
+
+window._startLessonFC = function (lid, reverse) {
+  const l = LESSONS.find(x => x.id === lid);
+  const deck = l.vocab.map(v => reverse
+    ? { front: esc(v[2]), back: esc(v[0]), backSub: "(" + v[1] + ")", backAudio: v[0] }
+    : { front: esc(v[0]), frontSub: "(" + v[1] + ")", audio: v[0], back: esc(v[2]) });
+  startFC(deck, "flashcards-" + lid, reverse ? "English → Japanese" : "Japanese → English");
+};
+
+window._startKanaFC = function (which) {
+  const data = KANA[which];
+  const deck = [];
+  [data.rows, data.voiced, data.combos].forEach(group =>
+    group.forEach(row => row.cells.forEach(c => {
+      if (c) deck.push({ front: esc(c[0]), audio: c[0], back: "(" + esc(c[1]) + ")" });
+    })));
+  startFC(deck, "kana-fc-" + which, "Kana → reading");
+};
+
 /* ============================================================
    PAGES
    ============================================================ */
@@ -97,7 +232,7 @@ function renderHome() {
     const quiz = getScore("quiz-" + l.id);
     return `<a class="lesson-card" href="#/lesson/${l.id}">
       <span class="num">Lesson ${l.id} · ${esc(l.genkiRef)}</span>
-      <h3><span class="jp">${esc(l.jpTitle)}</span> — ${esc(l.title)}</h3>
+      <h3><span class="jp">${esc(l.jpTitle)}</span> <span class="phonetic">(${esc(l.jpTitleRomaji)})</span> — ${esc(l.title)}</h3>
       <p>${esc(l.summary)}</p>
       ${quiz ? `<div class="score-line">✔ Quiz best: ${quiz.pct}%</div>` : ""}
     </a>`;
@@ -105,7 +240,7 @@ function renderHome() {
 
   app().innerHTML = `
     <div class="hero">
-      <h2>ようこそ！ Welcome to Japanese 1</h2>
+      <h2>ようこそ！ <span class="phonetic" style="color:#ffd9d2">(yōkoso! — welcome)</span> Welcome to Japanese 1</h2>
       <p>A free companion course for first-semester Japanese, matched lesson-for-lesson to the
       <strong>Genki I</strong> chapter sequence (Lessons 1–6) used at most California community colleges.
       Learn the kana, work through each lesson's vocabulary, grammar, and dialogue, then complete the
@@ -121,6 +256,7 @@ function renderHome() {
       <h3>How a lesson works (do it in this order)</h3>
       <ol>
         <li><strong>Vocabulary</strong> — listen 🔊 and repeat each word until it feels automatic.</li>
+        <li><strong>Flashcards</strong> — run the deck both directions (JP→EN, then EN→JP) until you can recall every word.</li>
         <li><strong>Dialogue</strong> — listen line-by-line, then shadow the whole conversation.</li>
         <li><strong>Grammar</strong> — read each point; say every example sentence out loud.</li>
         <li><strong>Homework</strong> — reading, writing, and speaking sets. Self-correct as you go (just like turning in a self-corrected Genki workbook).</li>
@@ -162,7 +298,7 @@ function renderSyllabus() {
 function kanaGrid(rows) {
   return `<div class="kana-table">` + rows.map(row =>
     row.cells.map(c =>
-      c ? `<div class="kana-cell" onclick="_speak('${esc(c[0])}', 0.7)"><span class="k">${esc(c[0])}</span><span class="r">${esc(c[1])}</span></div>`
+      c ? `<div class="kana-cell" onclick="_speak('${esc(c[0])}', 0.7)"><span class="k">${esc(c[0])}</span><span class="r">(${esc(c[1])})</span></div>`
         : `<div class="kana-cell blank"></div>`
     ).join("")
   ).join("") + `</div>`;
@@ -180,6 +316,13 @@ function renderKana(which) {
     <div class="card">
       <h3>Reading notes</h3>
       <ul>${data.notes.map(n => `<li>${esc(n)}</li>`).join("")}</ul>
+    </div>
+    <div class="card">
+      <h3>Flashcards <span class="badge quiz">graded</span></h3>
+      <p>Flip through every character and grade yourself honestly — ✓ only if you knew it before flipping.
+      ${getScore("kana-fc-" + which) ? `<strong>Best: ${getScore("kana-fc-" + which).pct}%</strong>` : ""}</p>
+      <button class="primary" onclick="window._startKanaFC('${which}')">Start flashcards</button>
+      <div id="fc-area"></div>
     </div>
     <div class="card">
       <h3>Drill <span class="badge quiz">graded</span></h3>
@@ -223,7 +366,7 @@ window._startKanaDrill = function (which) {
     recordScore("kana-" + which, correct, items.length);
     const pct = Math.round(correct / items.length * 100);
     document.getElementById("kd-result").innerHTML =
-      `<div class="score-banner ${pct >= 80 ? "good" : "bad"}">Score: ${correct}/${items.length} (${pct}%) ${pct >= 80 ? "— よくできました! (Well done!)" : "— Review the chart and try again."}</div>
+      `<div class="score-banner ${pct >= 80 ? "good" : "bad"}">Score: ${correct}/${items.length} (${pct}%) ${pct >= 80 ? "— よくできました <span class='phonetic'>(yoku dekimashita — well done!)</span>" : "— Review the chart and try again."}</div>
        <button class="ghost" onclick="window._startKanaDrill('${which}')">Try again</button>`;
   };
 };
@@ -237,7 +380,7 @@ function renderPronunciation() {
       ${s.examples.map(ex => `
         <div class="example">
           <span class="jp">${esc(ex[0])}</span> ${speakBtn(ex[0], 0.75)}
-          <span class="romaji">${esc(ex[1])}</span>
+          <span class="romaji">(${esc(ex[1])})</span>
           <span class="gloss">${esc(ex[2])}</span>
         </div>`).join("")}
     </div>`).join("");
@@ -254,7 +397,7 @@ function renderLesson(id, tab) {
   tab = tab || "vocab";
 
   const tabs = [
-    ["vocab", "Vocabulary"], ["dialogue", "Dialogue"], ["grammar", "Grammar"],
+    ["vocab", "Vocabulary"], ["flashcards", "Flashcards"], ["dialogue", "Dialogue"], ["grammar", "Grammar"],
     ["reading", "HW: Reading"], ["writing", "HW: Writing"], ["speaking", "HW: Speaking"], ["quiz", "Quiz"]
   ];
   const tabBtns = tabs.map(t =>
@@ -263,6 +406,7 @@ function renderLesson(id, tab) {
 
   let body = "";
   if (tab === "vocab") body = lessonVocab(l);
+  else if (tab === "flashcards") body = lessonFlashcards(l);
   else if (tab === "dialogue") body = lessonDialogue(l);
   else if (tab === "grammar") body = lessonGrammar(l);
   else if (tab === "reading") body = lessonReading(l);
@@ -271,7 +415,7 @@ function renderLesson(id, tab) {
   else if (tab === "quiz") body = lessonQuiz(l);
 
   app().innerHTML = `
-    <h2 class="page-title">Lesson ${l.id}: <span class="jp">${esc(l.jpTitle)}</span> — ${esc(l.title)}</h2>
+    <h2 class="page-title">Lesson ${l.id}: <span class="jp">${esc(l.jpTitle)}</span> <span class="phonetic">(${esc(l.jpTitleRomaji)})</span> — ${esc(l.title)}</h2>
     <p class="page-subtitle">${esc(l.genkiRef)} · ${esc(l.summary)}</p>
     <div class="card">
       <h3>Goals — by the end of this lesson you can:</h3>
@@ -300,6 +444,21 @@ function lessonVocab(l) {
   </div>`;
 }
 
+function lessonFlashcards(l) {
+  const best = getScore("flashcards-" + l.id);
+  return `<div class="card">
+    <h3><span class="badge quiz">Flashcards</span> ${best ? `Best: ${best.pct}%` : ""}</h3>
+    <p class="hint">Run the whole deck (${l.vocab.length} cards) and grade yourself honestly — ✓ only if you
+    recalled it before flipping. Do Japanese → English until it's easy, then flip the direction:
+    English → Japanese is what the quizzes and speaking homework demand. Your best run is saved.</p>
+    <div class="fc-controls" style="margin-bottom:12px">
+      <button class="primary" onclick="window._startLessonFC(${l.id}, false)">Start: Japanese → English</button>
+      <button class="ghost" onclick="window._startLessonFC(${l.id}, true)">Start: English → Japanese</button>
+    </div>
+    <div id="fc-area"></div>
+  </div>`;
+}
+
 function lessonDialogue(l) {
   const allJp = l.dialogue.lines.map(x => x[1]).join("");
   const lines = l.dialogue.lines.map(x => `
@@ -307,7 +466,7 @@ function lessonDialogue(l) {
       <div class="who">${esc(x[0])}</div>
       <div class="bubble">
         <span class="jp">${esc(x[1])} ${speakBtn(x[1])}</span>
-        <span class="romaji">${esc(x[2])}</span>
+        <span class="romaji">(${esc(x[2])})</span>
         <span class="gloss">${esc(x[3])}</span>
       </div>
     </div>`).join("");
@@ -327,7 +486,7 @@ function lessonGrammar(l) {
       ${g.examples.map(ex => `
         <div class="example">
           <span class="jp">${esc(ex[0])}</span> ${speakBtn(ex[0])}
-          <span class="romaji">${esc(ex[1])}</span>
+          <span class="romaji">(${esc(ex[1])})</span>
           <span class="gloss">${esc(ex[2])}</span>
         </div>`).join("")}
     </div>`).join("") + `</div>`;
@@ -349,7 +508,7 @@ function lessonReading(l) {
     <h3><span class="badge reading">Reading HW</span> ${best ? `Best: ${best.pct}%` : ""}</h3>
     <p class="hint">${esc(r.instructions)}</p>
     <div class="passage">${passageJp} ${speakBtn(r.passage.replace(/\n/g, ""), 0.8)}
-      <div class="romaji-block">${esc(r.romaji).replace(/\n/g, "<br>")}</div>
+      <div class="romaji-block">(${esc(r.romaji).replace(/\n/g, "<br>")})</div>
     </div>
     ${qHtml}
     <button class="primary" id="grade-reading">Grade reading HW</button>
@@ -413,8 +572,9 @@ function wireWriting(l) {
       const ok = it.accept.some(a => normalizeAnswer(a) === val) && val.length > 0;
       input.classList.remove("correct", "incorrect");
       input.classList.add(ok ? "correct" : "incorrect");
-      if (ok) { correct++; fb.className = "feedback ok"; fb.textContent = "✔ Correct — " + it.accept[0]; }
-      else { fb.className = "feedback no"; fb.textContent = "✘ Model answer: " + it.accept[0] + " — self-correct, then move on."; }
+      const rom = it.accept.find(a => /^[\x20-\x7eĀ-ſ]+$/.test(a)) || romajiFor(it.accept[0]);
+      if (ok) { correct++; fb.className = "feedback ok"; fb.textContent = "✔ Correct — " + it.accept[0] + " (" + rom + ")"; }
+      else { fb.className = "feedback no"; fb.textContent = "✘ Model answer: " + it.accept[0] + " (" + rom + ") — self-correct, then move on."; }
     });
     recordScore("writing-" + l.id, correct, w.items.length);
     const pct = Math.round(correct / w.items.length * 100);
@@ -433,7 +593,7 @@ function lessonSpeaking(l) {
   const items = s.items.map((it, i) => `
     <div class="speak-card" data-i="${i}">
       <span class="jp">${esc(it.jp)}</span>
-      <span class="romaji">${esc(it.romaji)}</span> — <span class="gloss">${esc(it.en)}</span>
+      <span class="romaji">(${esc(it.romaji)})</span> — <span class="gloss">${esc(it.en)}</span>
       <div class="controls">
         ${speakBtn(it.jp)} <span class="hint">listen</span>
         ${speakBtn(it.jp, 0.6)} <span class="hint">slow</span>
@@ -461,7 +621,7 @@ function markSpoken(lid, i, how) {
   const done = speakingState[lid].size;
   recordScore(speakingKey(lid), done, total);
   const res = document.getElementById("speaking-result");
-  if (res) res.innerHTML = `<div class="score-banner ${done === total ? "good" : "bad"}">${done}/${total} lines completed${done === total ? " — 完璧 (perfect)! Speaking HW done." : ""}</div>`;
+  if (res) res.innerHTML = `<div class="score-banner ${done === total ? "good" : "bad"}">${done}/${total} lines completed${done === total ? " — 完璧 <span class='phonetic'>(kanpeki — perfect!)</span> Speaking HW done." : ""}</div>`;
 }
 
 window._selfPass = function (lid, i) {
@@ -507,9 +667,9 @@ function lessonQuiz(l) {
   const best = getScore("quiz-" + l.id);
   const qs = l.quiz.map((q, qi) => `
     <div class="exercise" data-q="${qi}">
-      <div class="prompt">${qi + 1}. ${esc(q.q)}</div>
+      <div class="prompt">${qi + 1}. ${annotateKana(esc(q.q))}</div>
       <div class="choices">
-        ${shuffleChoices(q).map(c => `<label><input type="radio" name="qz${qi}" value="${c.ok ? 1 : 0}"> <span class="jp">${esc(c.text)}</span></label>`).join("")}
+        ${shuffleChoices(q).map(c => `<label><input type="radio" name="qz${qi}" value="${c.ok ? 1 : 0}"> <span class="jp">${annotateKana(esc(c.text))}</span></label>`).join("")}
       </div>
     </div>`).join("");
   return `<div class="card">
@@ -549,7 +709,7 @@ function wireQuiz(l) {
     document.getElementById("quiz-result").innerHTML =
       `<div class="score-banner ${pct >= 80 ? "good" : "bad"}">
         Score: ${correct}/${l.quiz.length} (${pct}%)
-        ${pct >= 80 ? "— 合格 (pass)! On to the next lesson." : "— Below 80%. Review the grammar tab and retake."}
+        ${pct >= 80 ? "— 合格 <span class='phonetic'>(gōkaku — pass!)</span> On to the next lesson." : "— Below 80%. Review the grammar tab and retake."}
       </div>`;
     document.getElementById("quiz-result").scrollIntoView({ behavior: "smooth" });
   };
@@ -560,9 +720,12 @@ function renderProgress() {
   const p = loadProgress();
   const sections = [
     { key: "kana-hiragana", label: "Hiragana drill" },
-    { key: "kana-katakana", label: "Katakana drill" }
+    { key: "kana-fc-hiragana", label: "Hiragana flashcards" },
+    { key: "kana-katakana", label: "Katakana drill" },
+    { key: "kana-fc-katakana", label: "Katakana flashcards" }
   ];
   LESSONS.forEach(l => {
+    sections.push({ key: "flashcards-" + l.id, label: `L${l.id} Flashcards` });
     sections.push({ key: "reading-" + l.id, label: `L${l.id} Reading HW` });
     sections.push({ key: "writing-" + l.id, label: `L${l.id} Writing HW` });
     sections.push({ key: "speaking-" + l.id, label: `L${l.id} Speaking HW` });
@@ -609,6 +772,7 @@ function renderLessonNav() {
     const done = quiz && quiz.pct >= 80;
     return `<a href="#/lesson/${l.id}" data-route="lesson-${l.id}">
       ${l.id}. ${esc(l.title)} <span class="jp" style="font-size:.85em">${esc(l.jpTitle)}</span>
+      <span class="phonetic">(${esc(l.jpTitleRomaji)})</span>
       ${done ? '<span class="done-mark">✔</span>' : ""}
     </a>`;
   }).join("");
