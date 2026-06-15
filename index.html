@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>げんきに日本語! — Japanese 1 Companion Course</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar">
+  <button id="menu-toggle" class="menu-toggle" aria-label="Toggle menu">☰</button>
+  <h1 class="brand">げんきに<span>日本語!</span> <small>Japanese 1 Companion</small></h1>
+  <div class="tts-status" id="tts-status" title="Audio uses your browser's Japanese voice">🔊</div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" id="sidebar">
+    <div class="nav-section">
+      <h2>Start Here</h2>
+      <a href="#/home" data-route="home">🏠 Course Home</a>
+      <a href="#/syllabus" data-route="syllabus">📋 Syllabus &amp; Lesson Plans</a>
+    </div>
+    <div class="nav-section">
+      <h2>The Japanese Sounds</h2>
+      <a href="#/kana/hiragana" data-route="kana-hiragana">あ Hiragana</a>
+      <a href="#/kana/katakana" data-route="kana-katakana">ア Katakana</a>
+      <a href="#/pronunciation" data-route="pronunciation">🗣 Pronunciation Guide</a>
+    </div>
+    <div class="nav-section">
+      <h2>Lessons (Genki I Ch. 1–6)</h2>
+      <div id="lesson-nav"></div>
+    </div>
+    <div class="nav-section">
+      <h2>My Work</h2>
+      <a href="#/progress" data-route="progress">📈 Grades &amp; Progress</a>
+    </div>
+  </nav>
+
+  <main class="content" id="app">
+    <noscript><p>This course requires JavaScript.</p></noscript>
+  </main>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
