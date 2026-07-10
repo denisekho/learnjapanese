@@ -1,0 +1,116 @@
+:root {
+  --glow-color: 130, 170, 255;
+  --glow-strength: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 30%, #1b2436 0%, #0a0e17 65%, #05070c 100%);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #dbe4f0;
+  overflow: hidden;
+}
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+/* Continuous idle float: gentle bob + sway, always running */
+.ghost-float {
+  animation: idle-float 6s ease-in-out infinite;
+  transform-origin: 50% 50%;
+  filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.45));
+}
+
+@keyframes idle-float {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  25%  { transform: translate(6px, -14px) rotate(1.5deg); }
+  50%  { transform: translate(0, -6px) rotate(0deg); }
+  75%  { transform: translate(-6px, -16px) rotate(-1.5deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+/* Voice-reactive layer: JS drives transform + filter on this element,
+   kept separate from the idle-float animation above so they compose. */
+.ghost-voice {
+  transition: transform 90ms linear;
+  will-change: transform;
+}
+
+.ghost-svg #ghostGlowGroup {
+  transition: filter 120ms linear;
+}
+
+#ghostMouth {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 60ms linear;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.mic-button {
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(219, 228, 240, 0.3);
+  background: rgba(219, 228, 240, 0.08);
+  color: #dbe4f0;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.mic-button:hover {
+  background: rgba(219, 228, 240, 0.16);
+}
+
+.mic-button:active {
+  transform: scale(0.97);
+}
+
+.mic-button[data-listening="true"] {
+  background: rgba(120, 200, 255, 0.22);
+  border-color: rgba(120, 200, 255, 0.5);
+}
+
+.status {
+  margin: 0;
+  font-size: 13px;
+  opacity: 0.65;
+  min-height: 16px;
+}
+
+.meter {
+  width: 180px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(219, 228, 240, 0.12);
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #6fb1ff, #b28dff);
+  transition: width 60ms linear;
+}
