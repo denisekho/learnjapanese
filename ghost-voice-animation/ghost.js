@@ -41,7 +41,7 @@
 
     const mouthScale =
       MOUTH_MIN_SCALE + (MOUTH_MAX_SCALE - MOUTH_MIN_SCALE) * smoothedVolume;
-    mouth.style.transform = `scaleY(${mouthScale.toFixed(3)}) scaleX(${(
+    mouth.style.transform = `scaleX(${mouthScale.toFixed(3)}) scaleY(${(
       1 + smoothedVolume * 0.15
     ).toFixed(3)})`;
 
