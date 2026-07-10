@@ -36,8 +36,6 @@
               id="ghostBody"
               d="M256 20
                  C 340 20 396 92 396 180
-                 C 452 202 494 256 486 302
-                 C 470 266 434 254 396 262
                  L 396 300
                  C 396 336 412 350 408 378
                  C 404 402 424 412 414 438
@@ -55,9 +53,7 @@
                  C 120 410 112 424 98 438
                  C 88 412 108 402 104 378
                  C 100 350 116 336 116 300
-                 L 116 262
-                 C 78 254 42 266 26 302
-                 C 18 256 60 202 116 180
+                 L 116 180
                  C 116 92 172 20 256 20 Z"
               fill="url(#bodyFill)"
               stroke="#9fb4c2"
@@ -66,8 +62,6 @@
             <path
               d="M256 20
                  C 340 20 396 92 396 180
-                 C 452 202 494 256 486 302
-                 C 470 266 434 254 396 262
                  L 396 300
                  C 396 336 412 350 408 378
                  C 404 402 424 412 414 438
@@ -85,9 +79,7 @@
                  C 120 410 112 424 98 438
                  C 88 412 108 402 104 378
                  C 100 350 116 336 116 300
-                 L 116 262
-                 C 78 254 42 266 26 302
-                 C 18 256 60 202 116 180
+                 L 116 180
                  C 116 92 172 20 256 20 Z"
               fill="url(#sheen)"
             />
@@ -98,8 +90,8 @@
             <circle cx="192" cy="182" r="5" fill="#ffffff" opacity="0.85" />
             <circle cx="304" cy="182" r="5" fill="#ffffff" opacity="0.85" />
 
-            <!-- mouth: scaled vertically by JS to react to voice volume -->
-            <ellipse id="ghostMouth" cx="256" cy="262" rx="19" ry="24" fill="#12151a" />
+            <!-- mouth: scaled horizontally by JS to react to voice volume -->
+            <ellipse id="ghostMouth" cx="256" cy="262" rx="20" ry="11" fill="#12151a" />
           </g>
         </svg>
       </div>
