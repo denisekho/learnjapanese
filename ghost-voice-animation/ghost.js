@@ -1,4 +1,24 @@
 (() => {
+  const THEME_KEY = "ghost-voice-theme";
+  const themeToggle = document.getElementById("themeToggle");
+
+  function applyTheme(theme) {
+    document.documentElement.dataset.theme = theme;
+    themeToggle.textContent = theme === "dark" ? "🌙" : "☀️";
+  }
+
+  const storedTheme = localStorage.getItem(THEME_KEY);
+  const systemTheme = window.matchMedia("(prefers-color-scheme: light)").matches
+    ? "light"
+    : "dark";
+  applyTheme(storedTheme || systemTheme);
+
+  themeToggle.addEventListener("click", () => {
+    const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+    localStorage.setItem(THEME_KEY, next);
+    applyTheme(next);
+  });
+
   const micButton = document.getElementById("micButton");
   const statusEl = document.getElementById("status");
   const meterFill = document.getElementById("meterFill");
