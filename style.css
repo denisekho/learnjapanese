@@ -12,6 +12,24 @@
   --spirit-2: #b28dff;
   --listening-bg: rgba(120, 200, 255, 0.22);
   --listening-border: rgba(120, 200, 255, 0.5);
+
+  /* white/glass ghost, for the dark background */
+  --ghost-stop-1: #ffffff;
+  --ghost-stop-1-op: 0.96;
+  --ghost-stop-2: #eef7fc;
+  --ghost-stop-2-op: 0.5;
+  --ghost-stop-3: #cfe3ee;
+  --ghost-stop-3-op: 0.62;
+  --ghost-stop-4: #9db6c9;
+  --ghost-stop-4-op: 0.88;
+  --ghost-rim-1: #ffffff;
+  --ghost-rim-1-op: 0.95;
+  --ghost-rim-2: #bcd2e4;
+  --ghost-rim-2-op: 0.55;
+  --ghost-rim-3: #7e96ab;
+  --ghost-rim-3-op: 0.9;
+  --eye-color: #12151a;
+  --highlight-dot-color: #ffffff;
 }
 
 @media (prefers-color-scheme: light) {
@@ -29,6 +47,24 @@
     --spirit-2: #8a63d1;
     --listening-bg: rgba(77, 120, 214, 0.16);
     --listening-border: rgba(77, 120, 214, 0.45);
+
+    /* dark/obsidian glass ghost, for the light background */
+    --ghost-stop-1: #7c8798;
+    --ghost-stop-1-op: 0.9;
+    --ghost-stop-2: #4b5768;
+    --ghost-stop-2-op: 0.55;
+    --ghost-stop-3: #262e3a;
+    --ghost-stop-3-op: 0.65;
+    --ghost-stop-4: #0c0f14;
+    --ghost-stop-4-op: 0.92;
+    --ghost-rim-1: #d7e0ea;
+    --ghost-rim-1-op: 0.85;
+    --ghost-rim-2: #6b7889;
+    --ghost-rim-2-op: 0.55;
+    --ghost-rim-3: #12161c;
+    --ghost-rim-3-op: 0.92;
+    --eye-color: #12151a;
+    --highlight-dot-color: #ffffff;
   }
 }
 
@@ -46,6 +82,23 @@
   --spirit-2: #b28dff;
   --listening-bg: rgba(120, 200, 255, 0.22);
   --listening-border: rgba(120, 200, 255, 0.5);
+
+  --ghost-stop-1: #ffffff;
+  --ghost-stop-1-op: 0.96;
+  --ghost-stop-2: #eef7fc;
+  --ghost-stop-2-op: 0.5;
+  --ghost-stop-3: #cfe3ee;
+  --ghost-stop-3-op: 0.62;
+  --ghost-stop-4: #9db6c9;
+  --ghost-stop-4-op: 0.88;
+  --ghost-rim-1: #ffffff;
+  --ghost-rim-1-op: 0.95;
+  --ghost-rim-2: #bcd2e4;
+  --ghost-rim-2-op: 0.55;
+  --ghost-rim-3: #7e96ab;
+  --ghost-rim-3-op: 0.9;
+  --eye-color: #12151a;
+  --highlight-dot-color: #ffffff;
 }
 
 :root[data-theme="light"] {
@@ -62,6 +115,23 @@
   --spirit-2: #8a63d1;
   --listening-bg: rgba(77, 120, 214, 0.16);
   --listening-border: rgba(77, 120, 214, 0.45);
+
+  --ghost-stop-1: #7c8798;
+  --ghost-stop-1-op: 0.9;
+  --ghost-stop-2: #4b5768;
+  --ghost-stop-2-op: 0.55;
+  --ghost-stop-3: #262e3a;
+  --ghost-stop-3-op: 0.65;
+  --ghost-stop-4: #0c0f14;
+  --ghost-stop-4-op: 0.92;
+  --ghost-rim-1: #d7e0ea;
+  --ghost-rim-1-op: 0.85;
+  --ghost-rim-2: #6b7889;
+  --ghost-rim-2-op: 0.55;
+  --ghost-rim-3: #12161c;
+  --ghost-rim-3-op: 0.92;
+  --eye-color: #12151a;
+  --highlight-dot-color: #ffffff;
 }
 
 * {
@@ -148,6 +218,23 @@ body {
   transform-box: fill-box;
   transform-origin: center;
   transition: transform 60ms linear;
+}
+
+.ghost-feature {
+  fill: var(--eye-color);
+  transition: fill 0.2s ease;
+}
+
+.ghost-feature-highlight {
+  fill: var(--highlight-dot-color);
+  opacity: 0.85;
+  transition: fill 0.2s ease;
+}
+
+#ghostBody,
+#bodyFill stop,
+#rimStroke stop {
+  transition: stop-color 0.2s ease, stop-opacity 0.2s ease, stroke 0.2s ease;
 }
 
 .controls {

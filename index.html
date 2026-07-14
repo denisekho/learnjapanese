@@ -40,15 +40,15 @@
               />
             </clipPath>
             <linearGradient id="bodyFill" x1="10%" y1="0%" x2="90%" y2="100%">
-              <stop offset="0%" stop-color="#ffffff" stop-opacity="0.96" />
-              <stop offset="38%" stop-color="#eef7fc" stop-opacity="0.5" />
-              <stop offset="72%" stop-color="#cfe3ee" stop-opacity="0.62" />
-              <stop offset="100%" stop-color="#9db6c9" stop-opacity="0.88" />
+              <stop offset="0%" style="stop-color:var(--ghost-stop-1); stop-opacity:var(--ghost-stop-1-op)" />
+              <stop offset="38%" style="stop-color:var(--ghost-stop-2); stop-opacity:var(--ghost-stop-2-op)" />
+              <stop offset="72%" style="stop-color:var(--ghost-stop-3); stop-opacity:var(--ghost-stop-3-op)" />
+              <stop offset="100%" style="stop-color:var(--ghost-stop-4); stop-opacity:var(--ghost-stop-4-op)" />
             </linearGradient>
             <linearGradient id="rimStroke" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95" />
-              <stop offset="55%" stop-color="#bcd2e4" stop-opacity="0.55" />
-              <stop offset="100%" stop-color="#7e96ab" stop-opacity="0.9" />
+              <stop offset="0%" style="stop-color:var(--ghost-rim-1); stop-opacity:var(--ghost-rim-1-op)" />
+              <stop offset="55%" style="stop-color:var(--ghost-rim-2); stop-opacity:var(--ghost-rim-2-op)" />
+              <stop offset="100%" style="stop-color:var(--ghost-rim-3); stop-opacity:var(--ghost-rim-3-op)" />
             </linearGradient>
             <radialGradient id="sheen" cx="32%" cy="22%" r="55%">
               <stop offset="0%" stop-color="#ffffff" stop-opacity="1" />
@@ -127,13 +127,13 @@
             </g>
 
             <!-- eyes -->
-            <ellipse cx="200" cy="196" rx="24" ry="34" fill="#12151a" />
-            <ellipse cx="312" cy="196" rx="24" ry="34" fill="#12151a" />
-            <circle cx="192" cy="182" r="5" fill="#ffffff" opacity="0.85" />
-            <circle cx="304" cy="182" r="5" fill="#ffffff" opacity="0.85" />
+            <ellipse class="ghost-feature" cx="200" cy="196" rx="24" ry="34" />
+            <ellipse class="ghost-feature" cx="312" cy="196" rx="24" ry="34" />
+            <circle class="ghost-feature-highlight" cx="192" cy="182" r="5" />
+            <circle class="ghost-feature-highlight" cx="304" cy="182" r="5" />
 
             <!-- mouth: scaled horizontally by JS to react to voice volume -->
-            <ellipse id="ghostMouth" cx="256" cy="262" rx="20" ry="11" fill="#12151a" />
+            <ellipse id="ghostMouth" class="ghost-feature" cx="256" cy="262" rx="20" ry="11" />
           </g>
         </svg>
       </div>
